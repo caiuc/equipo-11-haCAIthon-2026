@@ -176,22 +176,26 @@ async function loadInitialData() {
     const resPre = await fetch('/api/presets');
     if (resPre.ok) {
       state.presets = await resPre.json();
+    } else {
+      showError(`No se pudieron cargar los presets del servidor (HTTP ${resPre.status}).`);
     }
 
     // Catálogo Base de Artefactos
     const resCat = await fetch('/api/catalogo');
-    if (resCat.ok) {
-      const catalog = await resCat.json();
-      state.appliances = catalog.map(item => ({
-        ...item,
-        enabled: item.id === 'refrigerador_inverter' || item.id === 'starlink_internet' ||
-                 item.id === 'bomba_agua_05hp' || item.id === 'iluminacion_led_rural' ||
-                 item.id === 'cargadores_dispositivos' || item.id === 'televisor_smart_led'
-      }));
-      renderAppliancesList();
+    if (!resCat.ok) {
+      showError(`No se pudo cargar el catálogo de electrodomésticos (HTTP ${resCat.status}). No podrás avanzar al paso 2 correctamente.`);
+      return;
     }
+    const catalog = await resCat.json();
+    state.appliances = catalog.map(item => ({
+      ...item,
+      enabled: item.id === 'refrigerador_inverter' || item.id === 'starlink_internet' ||
+               item.id === 'bomba_agua_05hp' || item.id === 'iluminacion_led_rural' ||
+               item.id === 'cargadores_dispositivos' || item.id === 'televisor_smart_led'
+    }));
+    renderAppliancesList();
   } catch (err) {
-    console.warn('Error cargando catálogo desde API, usando defaults locales:', err);
+    showError(`No se pudo conectar con el servidor para cargar los datos iniciales: ${err.message}. Verifica que el backend esté corriendo.`);
   }
 }
 
@@ -330,20 +334,60 @@ async function runDimensioning() {
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
+      let detail = `HTTP ${response.status}`;
+      try {
+        const errBody = await response.json();
+        if (errBody && errBody.detail) {
+          detail = typeof errBody.detail === 'string' ? errBody.detail : JSON.stringify(errBody.detail);
+        }
+      } catch (_parseErr) {
+        // El cuerpo del error no era JSON; se usa el código HTTP tal cual.
+      }
+      throw new Error(detail);
     }
 
     const data = await response.json();
     state.lastResult = data;
+    hideError();
     updateUI(data);
   } catch (err) {
-    console.error('Error calculando dimensionamiento:', err);
+    const message = err.message || String(err);
+    showError(`No se pudo calcular el dimensionamiento: ${message}. Verifica tu conexión con el servidor e intenta de nuevo.`);
+    renderInlineErrorState('options-comparison-container', message, () => runDimensioning());
   }
 }
 
+// Muestra un estado de error visible dentro de un contenedor de contenido específico
+// (en vez de dejarlo vacío en silencio), con botón para reintentar.
+function renderInlineErrorState(containerId, message, onRetry) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = `
+    <div class="inline-error-state">
+      <div class="ie-icon">⚠️</div>
+      <div class="ie-text">No se pudo cargar esta sección: ${message}</div>
+      <button class="btn-primary" id="btn-retry-${containerId}">Reintentar</button>
+    </div>
+  `;
+  const retryBtn = document.getElementById(`btn-retry-${containerId}`);
+  if (retryBtn) retryBtn.addEventListener('click', onRetry);
+}
+
 // ================= ACTUALIZAR TODA LA INTERFAZ =================
+// Cada paso se actualiza en su propio try/catch: si uno falla, el resto de la interfaz
+// sigue funcionando y el error queda visible en el banner (nunca se cae en silencio).
 function updateUI(data) {
-  // -------- Paso 1: Clima y Ubicación --------
+  runSafely('Error mostrando ubicación/clima (Paso 1)', () => updateLocationAndClimateUI(data));
+  runSafely('Error mostrando demanda (Paso 2)', () => updateDemandUI(data));
+  runSafely('Error mostrando la comparativa de opciones (Paso 3)', () => renderOptionsComparison(data));
+  runSafely('Error mostrando el plano de instalación (Paso 4)', () => renderInstallationLayout(data));
+  runSafely('Error mostrando el expediente TE1 SEC (Paso 5)', () => {
+    updateTe1Tab(data);
+    renderSecChecklist(data.sec_compliance.checklist);
+  });
+}
+
+function updateLocationAndClimateUI(data) {
   const climate = data.climate;
   document.getElementById('val-climate-psh').innerHTML = `${climate.psh.toFixed(1)} <span class="unit">kWh/m²/día</span>`;
   document.getElementById('val-climate-wind').innerHTML = `${climate.wind_speed_avg_ms.toFixed(1)} <span class="unit">m/s</span>`;
@@ -359,34 +403,53 @@ function updateUI(data) {
   }
 
   document.getElementById('map-lat-lon').textContent = `${data.location.latitude.toFixed(4)}° Lat, ${data.location.longitude.toFixed(4)}° Lon`;
+}
 
-  // -------- Paso 2: Demanda --------
+function updateDemandUI(data) {
   const demand = data.demand;
   document.getElementById('badge-total-kwh').textContent = `${demand.total_daily_kwh.toFixed(2)} kWh/día`;
   document.getElementById('val-peak-power').textContent = `${(demand.peak_synchronous_power_w / 1000).toFixed(2)} kW`;
   document.getElementById('val-surge-power').textContent = `${(demand.peak_surge_power_w / 1000).toFixed(2)} kW`;
+}
 
-  // -------- Paso 3: Comparativa de 3 Opciones --------
-  renderOptionsComparison(data);
+// ================= MAPAS (LEAFLET) =================
+// CARTO Positron (gratuito, sin API key). Se usa en vez de tile.openstreetmap.org porque
+// muchos entornos de hosting/cloud reciben "403 Access Blocked" del tile server estándar de
+// OpenStreetMap (bloquea rangos de IP de datacenters por política anti-abuso). Las tiles de
+// CARTO están pensadas justamente para este tipo de embebido sin registro y además calzan
+// con el tema claro de la interfaz.
+const TILE_LAYER_URL = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+const TILE_LAYER_OPTIONS = {
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+  subdomains: 'abcd',
+  maxZoom: 19
+};
 
-  // -------- Paso 4: Plano de Instalación --------
-  renderInstallationLayout(data);
-
-  // -------- Paso 5: Expediente TE1 SEC (memoria + checklist + diagrama) --------
-  updateTe1Tab(data);
-  renderSecChecklist(data.sec_compliance.checklist);
+/** Agrega la capa de tiles a un mapa Leaflet y avisa visiblemente (una sola vez) si las tiles no cargan. */
+function addTileLayerWithErrorHandling(map, mapLabel) {
+  const layer = L.tileLayer(TILE_LAYER_URL, TILE_LAYER_OPTIONS).addTo(map);
+  let warned = false;
+  layer.on('tileerror', () => {
+    if (warned) return;
+    warned = true;
+    showError(
+      `No se pudieron cargar las imágenes del ${mapLabel} (posible bloqueo de red). ` +
+      'Igual puedes hacer clic en el área del mapa para fijar coordenadas, o escribir la dirección.'
+    );
+  });
+  return layer;
 }
 
 // ================= PASO 1: MAPA / UBICACIÓN (LEAFLET) =================
 function setupMapPicker() {
   const el = document.getElementById('map-picker');
-  if (!el || typeof L === 'undefined') return;
+  if (!el || typeof L === 'undefined') {
+    showError('No se pudo inicializar el mapa: la librería Leaflet no cargó (revisa tu conexión a internet).');
+    return;
+  }
 
   const map = L.map('map-picker', { zoomControl: true }).setView([state.location.latitude, state.location.longitude], 11);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap contributors',
-    maxZoom: 18
-  }).addTo(map);
+  addTileLayerWithErrorHandling(map, 'mapa de ubicación');
 
   const marker = L.marker([state.location.latitude, state.location.longitude], { draggable: true }).addTo(map);
 
@@ -474,6 +537,11 @@ function renderOptionsComparison(data) {
   const container = document.getElementById('options-comparison-container');
   if (!container) return;
   container.innerHTML = '';
+
+  if (!data.options || data.options.length === 0) {
+    renderInlineErrorState('options-comparison-container', 'el servidor no devolvió ninguna opción de sistema', () => runDimensioning());
+    return;
+  }
 
   const selectedId = state.preferredOption || 'recomendada';
   data.options.forEach(option => {
@@ -578,14 +646,15 @@ const ZONE_COLORS = {
 
 function setupMapLayout(lat, lon) {
   const el = document.getElementById('map-layout');
-  if (!el || typeof L === 'undefined') return null;
+  if (!el) return null;
+  if (typeof L === 'undefined') {
+    showError('No se pudo inicializar el plano de instalación: la librería Leaflet no cargó (revisa tu conexión a internet).');
+    return null;
+  }
 
   if (!state.mapLayoutInstance) {
     const map = L.map('map-layout', { zoomControl: true }).setView([lat, lon], 17);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors',
-      maxZoom: 19
-    }).addTo(map);
+    addTileLayerWithErrorHandling(map, 'plano de instalación');
     state.mapLayoutInstance = map;
     state.mapLayoutLayerGroup = L.layerGroup().addTo(map);
   } else {
