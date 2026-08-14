@@ -21,11 +21,15 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-# Configuración de CORS para permitir conexiones desde cualquier cliente
+# Configuración de CORS: la API es de solo lectura/cálculo público (sin login, sesiones ni
+# cookies), por lo que se permite cualquier origen para facilitar pruebas y desarrollo. No se
+# habilita allow_credentials porque nunca se usan cookies/credenciales, y combinarlo con
+# allow_origins=["*"] es una mala práctica de seguridad (además de que los navegadores lo
+# ignoran por especificación CORS).
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )

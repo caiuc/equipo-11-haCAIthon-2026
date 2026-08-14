@@ -322,7 +322,7 @@ function renderAppliancesList() {
       <div class="appliance-left">
         <input type="checkbox" id="chk-app-${idx}" ${app.enabled ? 'checked' : ''} class="app-chk">
         <div>
-          <div class="appliance-title">${app.name}</div>
+          <div class="appliance-title">${escapeHtml(app.name)}</div>
           <div class="appliance-meta">${app.power_w}W · ${app.hours_per_day}h/día</div>
         </div>
       </div>
@@ -408,7 +408,7 @@ function renderInlineErrorState(containerId, message, onRetry) {
   container.innerHTML = `
     <div class="inline-error-state">
       <div class="ie-icon">⚠️</div>
-      <div class="ie-text">No se pudo cargar esta sección: ${message}</div>
+      <div class="ie-text">No se pudo cargar esta sección: ${escapeHtml(message)}</div>
       <button class="btn-primary" id="btn-retry-${containerId}">Reintentar</button>
     </div>
   `;
@@ -973,4 +973,19 @@ function setupModal() {
 // ================= UTILIDADES =================
 function formatCLP(val) {
   return `$${Math.round(val).toLocaleString('es-CL')} CLP`;
+}
+
+/**
+ * Escapa HTML antes de insertar texto potencialmente controlado por el usuario (nombre de
+ * artefacto personalizado, mensajes de error que pueden reflejar datos de una petición
+ * inválida, etc.) dentro de innerHTML, para prevenir XSS.
+ */
+function escapeHtml(value) {
+  if (value === null || value === undefined) return '';
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }

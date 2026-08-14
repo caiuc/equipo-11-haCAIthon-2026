@@ -4,6 +4,7 @@ Tests de integración para los endpoints de la API REST de EnchufaTE y frontend 
 import pytest
 from httpx import AsyncClient, ASGITransport
 from app.main import app
+from app.api import endpoints as endpoints_module
 
 
 @pytest.mark.asyncio
@@ -284,3 +285,31 @@ async def test_geocode_endpoints_proxy_nominatim():
         resp_search = await client.get("/api/geocode/search", params={"q": "Santiago, Chile"})
         assert resp_search.status_code == 200
         assert isinstance(resp_search.json(), list)
+
+
+@pytest.mark.asyncio
+async def test_dimensionar_error_does_not_leak_internal_details(monkeypatch):
+    """
+    Criterio de la hackathon (APIs): si la API falla, debe responder con un código de error
+    estándar (4xx/5xx) sin revelar la estructura interna del backend (mensajes de excepción,
+    nombres de módulos, stack traces).
+    """
+    def _boom(*args, **kwargs):
+        raise RuntimeError("ruta interna secreta: /home/server/app/core/sizing.py línea 42")
+
+    monkeypatch.setattr(endpoints_module, "calculate_demand", _boom)
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        payload = {
+            "location": {"latitude": -35.96, "longitude": -72.31, "locality_name": "Cauquenes"},
+            "inhabitants": 4,
+            "appliances": []
+        }
+        resp = await client.post("/api/dimensionar", json=payload)
+
+        assert resp.status_code == 500
+        detail = resp.json()["detail"]
+        assert "ruta interna secreta" not in detail
+        assert "sizing.py" not in detail
+        assert "RuntimeError" not in detail

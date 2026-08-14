@@ -1,6 +1,7 @@
 """
 Endpoints de la API REST de EnchufaTE.
 """
+import logging
 from datetime import datetime, timezone
 from typing import List, Dict, Any, Optional
 from fastapi import APIRouter, HTTPException, Query
@@ -31,6 +32,8 @@ from app.core.economics import calculate_economics_and_impact
 from app.core.sec_compliance import generate_sec_compliance_report
 from app.core.layout import generate_site_layout
 from app.core.geocoding import reverse_geocode, search_locality
+
+logger = logging.getLogger("enchufate.api")
 
 router = APIRouter(prefix="/api", tags=["Dimensionamiento y Recursos"])
 
@@ -219,10 +222,14 @@ async def dimensionar_sistema(request: DimensioningRequest) -> DimensioningRespo
             options=options,
             site_layout=site_layout
         )
-    except Exception as exc:
+    except Exception:
+        # No se expone el detalle interno de la excepción (stack trace, nombres de módulos,
+        # etc.) en la respuesta HTTP: se registra en el log del servidor y se responde con un
+        # mensaje genérico, tal como exige el criterio de manejo de errores de la API.
+        logger.exception("Error inesperado en el pipeline de dimensionamiento")
         raise HTTPException(
             status_code=500,
-            detail=f"Error en el motor de dimensionamiento: {str(exc)}"
+            detail="Error interno al calcular el dimensionamiento. Intenta nuevamente en unos segundos."
         )
 
 
