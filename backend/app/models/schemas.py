@@ -123,7 +123,8 @@ class InverterSizing(BaseModel):
 
 class BillOfMaterialsItem(BaseModel):
     category: str = Field(..., description="Categoría (Generación, Almacenamiento, Conversión, BOS, SEC)")
-    description: str = Field(..., description="Descripción técnica detallada")
+    name: str = Field(..., description="Nombre corto y simple del producto, para mostrar en grande (ej. 'Paneles Solares')")
+    description: str = Field(..., description="Descripción técnica detallada, para mostrar en chico debajo del nombre")
     quantity: int = Field(..., description="Cantidad")
     unit: str = Field(..., description="Unidad (unidades, metros, global, etc.)")
     unit_cost_clp: float = Field(..., description="Costo unitario en CLP")

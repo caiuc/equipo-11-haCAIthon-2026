@@ -46,7 +46,7 @@ function setupErrorBanner() {
   });
 }
 
-function showError(message) {
+function showError(message, retryFn) {
   console.error(message);
   const banner = document.getElementById('error-banner');
   const text = document.getElementById('error-banner-text');
@@ -55,6 +55,22 @@ function showError(message) {
     return;
   }
   text.textContent = message;
+
+  // Botón "Reintentar" opcional (ej: cuando el problema es de conexión con el backend)
+  let retryBtn = document.getElementById('error-banner-retry');
+  if (retryBtn) retryBtn.remove();
+  if (retryFn) {
+    retryBtn = document.createElement('button');
+    retryBtn.id = 'error-banner-retry';
+    retryBtn.className = 'error-banner-retry';
+    retryBtn.textContent = 'Reintentar';
+    retryBtn.addEventListener('click', () => {
+      hideError();
+      retryFn();
+    });
+    banner.insertBefore(retryBtn, document.getElementById('error-banner-close'));
+  }
+
   banner.classList.remove('hidden');
 }
 
@@ -71,9 +87,36 @@ function runSafely(label, fn) {
   }
 }
 
+// Un fetch() rechazado (no una respuesta HTTP con error) significa que el navegador ni
+// siquiera pudo conectarse al servidor: backend caído, puerto equivocado, CORS bloqueado,
+// o la página abierta como archivo local (file://) en vez de servida por el backend.
+function isNetworkLevelError(err) {
+  return err instanceof TypeError;
+}
+
+function friendlyConnectionMessage(err) {
+  if (isNetworkLevelError(err)) {
+    if (window.location.protocol === 'file:') {
+      return 'No se pudo conectar con el servidor: esta página se abrió como archivo local (file://). ' +
+        'Debes iniciar el backend con "python backend/run.py" y abrir http://localhost:8000 en el navegador, no el archivo index.html directamente.';
+    }
+    return `No se pudo conectar con el servidor backend en ${window.location.origin}. ` +
+      'Verifica que esté corriendo (python backend/run.py) y que no haya un firewall/proxy bloqueando la conexión.';
+  }
+  return err.message || String(err);
+}
+
 // Inicialización
 document.addEventListener('DOMContentLoaded', async () => {
   setupErrorBanner();
+
+  if (window.location.protocol === 'file:') {
+    showError(
+      'Esta página se abrió como archivo local (file://) y no puede conectarse al servidor. ' +
+      'Inicia el backend con "python backend/run.py" desde la carpeta del proyecto y abre http://localhost:8000 en el navegador.'
+    );
+  }
+
   runSafely('Error iniciando la navegación por pasos', setupStepper);
   runSafely('Error iniciando el modo stand', setupStandModeToggle);
   runSafely('Error iniciando el formulario de equipos', setupModal);
@@ -183,7 +226,7 @@ async function loadInitialData() {
     // Catálogo Base de Artefactos
     const resCat = await fetch('/api/catalogo');
     if (!resCat.ok) {
-      showError(`No se pudo cargar el catálogo de electrodomésticos (HTTP ${resCat.status}). No podrás avanzar al paso 2 correctamente.`);
+      showError(`No se pudo cargar el catálogo de electrodomésticos (HTTP ${resCat.status}). No podrás avanzar al paso 2 correctamente.`, () => loadInitialData());
       return;
     }
     const catalog = await resCat.json();
@@ -195,7 +238,7 @@ async function loadInitialData() {
     }));
     renderAppliancesList();
   } catch (err) {
-    showError(`No se pudo conectar con el servidor para cargar los datos iniciales: ${err.message}. Verifica que el backend esté corriendo.`);
+    showError(`No se pudieron cargar los datos iniciales. ${friendlyConnectionMessage(err)}`, () => loadInitialData());
   }
 }
 
@@ -351,8 +394,8 @@ async function runDimensioning() {
     hideError();
     updateUI(data);
   } catch (err) {
-    const message = err.message || String(err);
-    showError(`No se pudo calcular el dimensionamiento: ${message}. Verifica tu conexión con el servidor e intenta de nuevo.`);
+    const message = friendlyConnectionMessage(err);
+    showError(`No se pudo calcular el dimensionamiento. ${message}`, () => runDimensioning());
     renderInlineErrorState('options-comparison-container', message, () => runDimensioning());
   }
 }
@@ -528,7 +571,7 @@ async function searchLocality() {
 
     runDimensioning();
   } catch (err) {
-    console.warn('Error buscando localidad:', err);
+    showError(`No se pudo buscar esa dirección. ${friendlyConnectionMessage(err)}`, () => searchLocality());
   }
 }
 
@@ -563,11 +606,12 @@ function renderOptionCard(option, isSelected) {
   const bomHtml = option.bom.map(item => `
     <div class="bom-line-item">
       <div class="bli-main">
+        <span class="bli-name">${item.name}</span>
         <span class="bli-desc">${item.description}</span>
         <span class="bli-qty">${item.quantity} ${item.unit} · ${formatCLP(item.unit_cost_clp)} c/u</span>
       </div>
       <div class="bli-cost">${formatCLP(item.total_cost_clp)}</div>
-      ${item.purchase_url ? `<a href="${item.purchase_url}" target="_blank" rel="noopener" class="bom-buy-link">Dónde comprar ↗</a>` : ''}
+      ${item.purchase_url ? `<a href="${item.purchase_url}" target="_blank" rel="noopener" class="bom-buy-link">Ver en Mercado Libre ↗</a>` : ''}
     </div>
   `).join('');
 
@@ -699,7 +743,7 @@ function renderInstallationLayout(data) {
   zones.forEach(zone => {
     const midDistance = (zone.min_distance_m + zone.max_distance_m) / 2;
     const [zLat, zLon] = offsetLatLon(centerLat, centerLon, Math.max(midDistance, 3), zone.bearing_deg);
-    const color = ZONE_COLORS[zone.equipment] || '#0284c7';
+    const color = ZONE_COLORS[zone.equipment] || '#0e6151';
     const radius = Math.max(4, (zone.max_distance_m - zone.min_distance_m) / 2 + 3);
 
     L.circle([zLat, zLon], {

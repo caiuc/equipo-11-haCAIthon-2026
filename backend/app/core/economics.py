@@ -2,6 +2,8 @@
 Módulo de análisis económico y evaluación de impacto ambiental para EnchufaTE.
 Costos en Pesos Chilenos (CLP), ahorro de diésel, LCOE y mitigación de CO2.
 """
+import re
+import unicodedata
 from typing import List
 from urllib.parse import quote_plus
 from app.config import (
@@ -38,13 +40,23 @@ from app.models.schemas import (
 SEC_INSTALLER_REGISTRY_URL = "https://www.sec.cl"
 
 
+def _slugify_for_mercadolibre(query: str) -> str:
+    """Convierte un texto libre en el slug de búsqueda que usa Mercado Libre Chile en la URL."""
+    normalized = unicodedata.normalize("NFKD", query)
+    ascii_only = normalized.encode("ascii", "ignore").decode("ascii")
+    slug = re.sub(r"[^a-z0-9]+", "-", ascii_only.lower()).strip("-")
+    return slug
+
+
 def _purchase_search_url(query: str) -> str:
     """
-    Enlace referencial de búsqueda (no un proveedor específico) para cotizar un ítem del BOM
-    en Chile. Se usa una búsqueda web genérica en vez de un enlace directo a un retailer, ya
-    que el stock/precio de proveedores puntuales cambia constantemente.
+    Enlace de búsqueda en Mercado Libre Chile (el marketplace más usado del país) para cotizar
+    un ítem del BOM. Es un enlace de búsqueda -no una ficha de producto puntual- porque el
+    stock/precio de vendedores específicos cambia constantemente, pero lleva directo al listado
+    de resultados reales del artículo en un solo lugar concreto en vez de un buscador genérico.
     """
-    return f"https://www.google.com/search?q={quote_plus(query + ' precio Chile comprar')}"
+    slug = _slugify_for_mercadolibre(query)
+    return f"https://listado.mercadolibre.cl/{slug}"
 
 
 def _installation_service_search_url() -> str:
@@ -71,6 +83,7 @@ def calculate_economics_and_impact(
     bom.append(
         BillOfMaterialsItem(
             category="Generación Solar",
+            name="Paneles Solares",
             description=f"Paneles Fotovoltaicos Monocristalinos PERC {solar.panel_model_w:.0f}Wp Tier-1",
             quantity=solar.num_panels,
             unit="paneles",
@@ -88,6 +101,7 @@ def calculate_economics_and_impact(
         bom.append(
             BillOfMaterialsItem(
                 category="Generación Eólica",
+                name="Turbina Eólica",
                 description=f"Microturbina Eólica {wind.turbine_nominal_power_kw:.1f} kW con mástil de 12m y controlador de freno",
                 quantity=wind.turbines_count,
                 unit="kit eólico",
@@ -103,6 +117,7 @@ def calculate_economics_and_impact(
     bom.append(
         BillOfMaterialsItem(
             category="Almacenamiento",
+            name="Batería (Banco de Almacenamiento)",
             description=f"Módulos Rack Batería Litio Ferro-Fosfato (LiFePO4) 48V {battery.module_kwh:.1f} kWh (>6000 ciclos)",
             quantity=battery.num_modules,
             unit="módulos",
@@ -117,6 +132,7 @@ def calculate_economics_and_impact(
     bom.append(
         BillOfMaterialsItem(
             category="Conversión de Potencia",
+            name="Inversor / Cargador",
             description=f"Inversor/Cargador Off-Grid Onda Pura {inverter.nominal_power_kva:.1f} kVA 48V con controlador MPPT integrado",
             quantity=1,
             unit="unidad",
@@ -133,6 +149,7 @@ def calculate_economics_and_impact(
     bom.append(
         BillOfMaterialsItem(
             category="Balance de Sistema (BOS)",
+            name="Estructura y Cableado",
             description="Estructuras de aluminio anodizado, cable solar 6mm² UV, canalizaciones, tableros DC/AC, protecciones y puesta a tierra SEC",
             quantity=1,
             unit="sistema global",
@@ -148,6 +165,7 @@ def calculate_economics_and_impact(
     bom.append(
         BillOfMaterialsItem(
             category="Servicios de Ingeniería y SEC",
+            name="Instalación y Trámite SEC",
             description="Montaje electromecánico SEC Clase A/B, conexionado, pruebas de aislamiento, memoria de cálculo y declaración oficial TE1",
             quantity=1,
             unit="servicio llave en mano",
