@@ -27,6 +27,10 @@ El usuario recorre un asistente de 5 pasos:
 4. **🗺️ Plano de instalación** — Un mapa muestra dónde debería ir cada componente (paneles, turbina, baterías) respecto a la(s) vivienda(s), con distancia y orientación recomendadas.
 5. **📄 Expediente TE1 SEC** — Memoria de cálculo, diagrama unilineal y checklist normativo listos para imprimir/adjuntar a la declaración ante la SEC.
 
+<p align="center">
+  <img src="frontend/assets/screenshot_app.png" alt="Captura de pantalla de EnchufaTE: Paso 1, selección de ubicación en el mapa" width="900">
+</p>
+
 ---
 
 ## Cómo correrlo
@@ -96,7 +100,7 @@ El **Paso 5 (Expediente TE1 SEC)** de la app genera el checklist y la memoria de
 │   ├── index.html                   # Asistente de 5 pasos
 │   ├── styles.css                   # Sistema de diseño (tema claro, paleta de marca)
 │   ├── app.js                       # Lógica del asistente, mapas y llamadas a la API
-│   └── assets/logo_enchufate.png    # Logo del proyecto
+│   └── assets/                      # Logo y captura de pantalla del proyecto
 ├── CLAUDE.md                        # Guía de desarrollo y convenciones del proyecto
 ├── instrucciones_desarrollo_ia.md   # Especificación técnica para agentes de IA
 └── LICENSE                          # Licencia MIT

@@ -590,6 +590,17 @@ function renderOptionsComparison(data) {
   data.options.forEach(option => {
     container.appendChild(renderOptionCard(option, option.option_id === selectedId));
   });
+
+  // Siempre hay una opción activa (la recomendada por defecto, o la que el usuario haya
+  // elegido), así que continuar nunca debería quedar bloqueado esperando un clic explícito.
+  const contBtn = document.getElementById('btn-continue-plano');
+  if (contBtn) {
+    contBtn.disabled = false;
+    const selectedOption = data.options.find(o => o.option_id === selectedId);
+    contBtn.textContent = selectedOption
+      ? `Continuar con "${selectedOption.label}" →`
+      : 'Continuar: Ver Plano de Instalación →';
+  }
 }
 
 function renderOptionCard(option, isSelected) {
@@ -665,9 +676,8 @@ function renderOptionCard(option, isSelected) {
 async function selectOption(optionId) {
   state.preferredOption = optionId;
   await runDimensioning();
-  const contBtn = document.getElementById('btn-continue-plano');
-  contBtn.disabled = false;
-  contBtn.textContent = 'Continuar: Ver Plano de Instalación →';
+  // renderOptionsComparison() (llamada dentro de runDimensioning -> updateUI) ya deja el
+  // botón "Continuar" habilitado y actualiza su texto con la opción recién elegida.
 }
 
 // ================= PASO 4: PLANO DE INSTALACIÓN (LEAFLET) =================
