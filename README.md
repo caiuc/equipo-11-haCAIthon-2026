@@ -1,116 +1,108 @@
-# HaCAiThon 2026 · RESUMEN BASES OFICIALES
+# EnchufaTE · Motor Inteligente de Dimensionamiento y Electrificación Rural Off-Grid en Chile
 
 <p align="left">
-  <a href="https://tinyurl.com/Hacaithon" target="_blank"><img src="https://upload.wikimedia.org/wikipedia/commons/1/16/Logo_CAi.png" height="28" alt="Logo CAi UC" align="center" /><img src="https://img.shields.io/badge/CAi-Ingenier%C3%ADa_UC-FFC72C?style=for-the-badge" alt="CAi Badge" align="center" /></a>
+  <a href="https://tinyurl.com/Hacaithon" target="_blank"><img src="https://upload.wikimedia.org/wikipedia/commons/1/16/Logo_CAi.png" height="28" alt="Logo CAi UC" align="center" /><img src="https://img.shields.io/badge/CAi-HaCAiThon_2026-FFC72C?style=for-the-badge" alt="CAi Badge" align="center" /></a>
+  <img src="https://img.shields.io/badge/SEC-RIC_N%C2%B009.1_%2F_RIC_N%C2%B006-0284c7?style=for-the-badge" alt="SEC Badge" align="center" />
+  <img src="https://img.shields.io/badge/Licencia-MIT-10b981?style=for-the-badge" alt="MIT License" align="center" />
 </p>
 
-## Centro de Alumnos de Ingeniería UC · Primera edición 
-
-### 1. QUÉ ES
-
-* Hackathon presencial de 8 horas (12:00 a 20:00 hrs) para estudiantes de Ingeniería, de la LICC y de la LICD, trabajando en equipos multidisciplinarios en soluciones a seis 
-desafíos sociales usando programación e IA. Está orientada a estudiantes de pregrado.
----
-### 2. QUIÉNES PUEDEN PARTICIPAR
-
-* Estudiantes de Ingeniería UC, de la LICC y de la LICD, de cualquier nivel y major, con 80 plazas disponibles. No se requiere experiencia previa en programación más allá de Intro a la Progra.
-
-* La competencia está orientada al pregrado, pero se admite posgrado con un límite de composición: cada equipo puede incluir como máximo 1 participante de posgrado (magíster o doctorado); los otros 3 deben ser de pregrado. No se aceptan equipos con 2 o más participantes de posgrado.
-
-* Si cursas ramos de magíster bajo articulación y mantienes tu matrícula de pregrado activa, cuentas como participante de pregrado. Quien participa desde posgrado ocupa una plaza en las mismas condiciones y compite por los mismos premios, salvo el de Mejor Equipo Novato.
----
-### 3. EQUIPOS E INSCRIPCIÓN
-
-* Equipos de 4 personas, con cupos limitados. Puedes postular con menos, o sin equipo: indicas cuántos son y el CAi arma los equipos incompletos antes del evento. No puedes sumarte por tu cuenta a un equipo ya postulado; el emparejamiento lo hace la organización.
-
-* Cada equipo designa un/a líder de grupo como contacto oficial.
-
-* Cada integrante declara en el formulario su programa principal vigente (pregrado o posgrado) y su año de ingreso. Declarar información falsa o incompleta es causal de descalificación.
-
-* Inscripciones: del 2 al 12 de agosto de 2026, hasta las 23:59.
----
-### 4. VERIFICACIÓN DEL EQUIPO
-
-* El CAi revisa la composición declarada de cada equipo durante el plazo de inscripción. Si un equipo excede el límite de 1 participante de posgrado, se le avisa por correo a las direcciones declaradas y tiene hasta el cierre de inscripciones (12 de agosto) para corregirlo. Si el aviso se envía dentro de los últimos 3 días del plazo, el equipo tiene 48 horas desde el envío para responder, aunque eso pase del 12 de agosto.
-
-* El equipo que no corrija su composición a tiempo queda descalificado y su cupo puede reasignarse. Mantén vigentes y revisadas las direcciones de correo que declaraste.
----
-### 5. PREMIO MEJOR EQUIPO NOVATO
-
-* Es novato quien cursa su primer año en la Universidad como estudiante de pregrado; se declara al inscribirse y se verifica con el año de ingreso registrado.
-
-* El Premio Mejor Equipo Novato se otorga solo a equipos formados en su totalidad por participantes novatos. Un equipo con alguien de posgrado, o con cualquier integrante que no sea novato, no opta a este premio, pero compite normalmente por el podio y las demás categorías.
----
-### 6. SELECCIÓN DE POSTULACIONES
-
-* Los cupos son limitados y NO se asignan por orden de llegada. Toda postulación incluye un texto (entre 200 y 1500 caracteres) explicando por qué quieren participar y qué quieren construir.
-
-* Después del cierre, el CAi revisa todas las postulaciones y confirma por correo UC a quienes queden seleccionados. No se evalúa el nivel técnico: partir sin experiencia previa es válido y esperable.
----
-### 7. FECHA Y LUGAR
-
-* Viernes 14 de agosto, 12:00 a 20:00 hrs.
-
-* Campus San Joaquín, Sala de Estudio, Primer Piso.
-
-* Check-in desde las 12:00 con tu credencial universitaria.
+> **Equipo 11 · HaCAiThon 2026**  
+> **Temática:** Energía Renovable y Electrificación Rural  
+> **Nombre del Proyecto:** EnchufaTE (Plataforma Inteligente de Electrificación y Declaración SEC TE1)
 
 ---
-### 8. ITINERARIO DEL DÍA
 
-| Hora | Actividad |
-| --- | --- |
-| 12:00 | Registro y acreditación |
-| 12:15 | Apertura: bienvenida, reglas, presentación de las seis temáticas |
-| 12:40 | Desarrollo: bloque de trabajo de los equipos |
-| 17:10 | Feria de proyectos: los equipos exhiben en simultáneo, jurado y público circulan libremente y el público vota su favorito |
-| 18:50 | El jurado delibera |
-| 19:00 | Premiación |
-| 19:45 | Cierre y fotos |
+## ☀️ ¿Qué es EnchufaTE?
+
+**EnchufaTE** es una plataforma integral tecno-económica diseñada para resolver la brecha de electrificación en zonas rurales, aisladas y desconectadas de Chile. A partir de coordenadas geográficas o selección de presets regionales (vivienda familiar, posta rural de salud, escuela unidocente, predio agrícola o refugio patagónico), el sistema:
+
+1. **Consulta meteorología en tiempo real**: Ingesta de radiación solar global ($GHI \to PSH$ o $HSP$ en $\text{kWh/m}^2/\text{día}$) y velocidad horaria de viento a 10m vía **Open-Meteo API** (con matriz de respaldo offline para las 16 regiones de Chile).
+2. **Modela la demanda paramétrica**: Combina carga base per cápita ($350\text{ Wh/persona/día}$) con electrodomésticos de campo (refrigerador inverter, Starlink, bomba de agua, iluminación LED) modelando potencias sincrónicas y picos de arranque inductivos.
+3. **Evalúa factibilidad y mix renovable**: Aplica el umbral eólico ($v_{\text{avg}} \ge 4.5\text{ m/s}$) para activar microgeneración eólica complementaria o dimensionar al $100\%$ solar fotovoltaico.
+4. **Optimiza la microred aislada**: Calcula potencia solar ($P_{\text{pv}}$ en $\text{kWp}$ con rendimiento $\eta_{\text{sys}} = 78\%$, inclinación óptima $\text{Tilt} = |\text{Latitud}| \times 0.9$ y Azimut $0^\circ$ Norte), banco de baterías $\text{LiFePO}_4$ ($48\text{V}$, $\text{DoD} = 85\%$, autonomía $1.2\text{ días}$) e inversor/cargador de onda pura con factor de sobrecarga de $1.25\times$.
+5. **Genera presupuestos reales en CLP y métricas de impacto**: CAPEX desglosado con Balance de Sistema (BOS $18\%$), mano de obra de montaje e ingeniería SEC TE1, costo nivelado LCOE a 20 años, payback simple vs generador diésel ($0.35\text{ L/kWh}$, $\$1.250\text{ CLP/L}$) y toneladas de $CO_2$ evitadas ($2.68\text{ kg } CO_2/\text{L}$).
+6. **Valida la normativa chilena SEC**: Cumple y genera el checklist para las instrucciones técnicas **RIC N°09.1/2021** (Sistemas Aislados), **RIC N°06/2021** (Puesta a tierra $\le 20\ \Omega$) y expediente oficial para la declaración **TE1**.
+
 ---
-### 9. TEMÁTICAS
-* Cada equipo elige una de seis, pensadas como problemas
-concretos y no categorías abstractas:
-  * Salud Pública: acceso a atención primaria, listas de espera, telemedicina, salud mental estudiantil.
-  * Educación Pública: brecha digital, deserción escolar, material de estudio en zonas con poca conectividad.
-  * Educación Financiera: manejo de deuda, ahorro y decisiones de inversión informadas.
-  * Sustentabilidad: residuos, huella de carbono, economía circular, monitoreo ambiental.
-  * Transporte: movilidad urbana, congestión, seguridad vial, accesibilidad.
-  * Energía Renovable: eficiencia energética, energías renovables, electrificación rural.
+
+## 🖥️ Interfaz de Usuario y Modo Stand (800x480)
+
+La plataforma cuenta con una interfaz web moderna y reactiva de 7 pestañas que incluye:
+- **Modo Stand 800x480**: Botón directo para fijar la interfaz en resolución nativa de $800 \times 480\text{ px}$ (pantallas táctiles de feria o displays embebidos) previniendo desajustes visuales o scroll durante la exhibición.
+- **Mapa / Ubicación**: selección de coordenadas haciendo clic en un mapa interactivo (Leaflet + OpenStreetMap), con buscador de localidad.
+- **Cantidad de viviendas, no solo personas**: además de los habitantes por vivienda, se puede escalar el dimensionamiento a varias viviendas/unidades del mismo predio o caserío.
+- **Comparativa de Opciones**: inversión total, paneles, eólica y baterías de la configuración recomendada y **2 alternativas factibles** más, presentadas de forma clara y sin saturar de datos.
+- **Diagrama Eléctrico Unilineal SVG interactivo** con identificación de protecciones (Seccionador DC, DPS Tipo II, RCD Tipo B/A Superinmunizado, malla tierra).
+- **Expediente Imprimible TE1 SEC**: Vista de exportación formal de memoria de cálculo.
+- **Plano de Instalación**: mapa final con la ubicación recomendada de paneles, turbina eólica y baterías respecto a la(s) vivienda(s).
+
 ---
-### 10. ENTREGABLES
-* Repositorio público en GitHub con todo el proyecto.
-* Nombre del proyecto, indicado en el repositorio y al momento de entregar.
-* Proyecto listo para exhibir en la Feria: presentación informal, sin pitch ni tiempo fijo.
-La entrega cierra a las 17:10 hrs, cuando comienza la Feria de Proyectos. La vía de entrega se informa el mismo día en la sala.
+
+## 🚀 Inicio Rápido y Ejecución
+
+### Requisitos
+- Python 3.10 o superior.
+
+### 1. Instalación de Dependencias
+```bash
+pip install -r backend/requirements.txt
+```
+
+### 2. Iniciar la Aplicación (Backend + Frontend)
+```bash
+python backend/run.py
+```
+O con uvicorn:
+```bash
+uvicorn app.main:app --app-dir backend --host 0.0.0.0 --port 8000 --reload
+```
+
+- **Aplicación Web**: Abre [http://localhost:8000](http://localhost:8000) en tu navegador.
+- **Documentación Interactiva de la API (Swagger UI)**: [http://localhost:8000/docs](http://localhost:8000/docs)
+- **Documentación ReDoc**: [http://localhost:8000/redoc](http://localhost:8000/redoc)
+
+### 3. Ejecutar Pruebas Automatizadas
+```bash
+PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 pytest -p asyncio
+```
+
 ---
-### 11. REGLAS DE DESARROLLO
-* Código original: todo el código se crea durante el evento (12:40 a 17:10 hrs). Puedes llegar con la idea ya pensada, pero no con código escrito.
-* Se permite código de terceros (librerías, APIs, assets) si se declara y se respeta su licencia.
-* Se autoriza y recomienda el uso de IA para programar (VibeCoding, Copilot, Gemini, etc.), incluida la generación de imágenes y otros assets.
+
+## 📁 Estructura del Código
+
+```text
+├── backend/
+│   ├── app/
+│   │   ├── api/endpoints.py         # Endpoints REST (/dimensionar, /clima, /catalogo, /presets, /regiones)
+│   │   ├── core/
+│   │   │   ├── weather.py           # Open-Meteo API + fallback 16 regiones de Chile
+│   │   │   ├── demand.py            # Balance horario de demanda, habitantes y corrientes de arranque
+│   │   │   ├── sizing.py            # Motor físico de dimensionamiento (Solar, Eólico, LiFePO4, Inversor)
+│   │   │   ├── economics.py         # Costos CLP, BOS 18%, LCOE, Payback diésel y mitigación CO2
+│   │   │   ├── sec_compliance.py   # Validación normativa SEC RIC N°09.1 y RIC N°06
+│   │   │   └── layout.py            # Emplazamiento físico (Solar/Eólico/Baterías) vs. vivienda(s)
+│   │   ├── models/schemas.py        # Modelos Pydantic fuertemente tipados
+│   │   ├── models/catalog.py        # Catálogo de electrodomésticos y presets de campo
+│   │   ├── config.py                # Constantes técnicas, de mercado y climáticas
+│   │   └── main.py                  # Servidor ASGI FastAPI con montaje estático
+│   ├── tests/                       # Suite completa de tests unitarios y de integración
+│   ├── requirements.txt
+│   └── run.py
+├── frontend/
+│   ├── index.html                   # GUI interactiva con modo stand 800x480
+│   ├── styles.css                   # Sistema de diseño dark slate / amber / cyan
+│   └── app.js                       # Lógica reactiva de simulación y gráficos SVG
+├── CLAUDE.md                        # Guía de desarrollo y convenciones del proyecto
+├── instrucciones_desarrollo_ia.md   # Especificación técnica exhaustiva para agentes
+└── LICENSE                          # Licencia Open Source MIT
+```
+
 ---
-### 12. LICENCIA OPEN SOURCE
 
-* Todo proyecto debe publicarse bajo una licencia OSI (MIT, Apache 2.0 o GPLv3 recomendadas), con un archivo LICENSE en la raíz del repositorio. Es requisito para ser evaluado.
----
-### 13. CRITERIOS DE EVALUACIÓN
+## 📜 Bases Oficiales HaCAiThon 2026 (Resumen CAi)
 
-* Innovación y creatividad (15%) · Impacto y relevancia social (25%) · Viabilidad técnica (25%) · Ejecución y funcionamiento (20%) · Comunicación (15%).
----
-### 14. DESCALIFICACIÓN
-
-* Código preexistente no declarado, falsedad en la inscripción, incumplimiento del límite de composición del equipo o cualquier otro incumplimiento de las bases es causal de descalificación, a criterio inapelable del CAi.
-
-* Toda descalificación se notifica por correo a las direcciones declaradas, indicando la causal. En el caso del límite de composición, la descalificación procede solo después de avisar al equipo y de que este no corrija su conformación dentro del plazo.
----
-### 15. PROPIEDAD Y USO DE IMAGEN
-
-* El proyecto es propiedad de tu equipo. Se requiere licencia open source para competir. Al participar, autorizas al CAi a usar el nombre del proyecto y material de presentación, y tu imagen en fotos/videos del evento, con fines promocionales, revocable por escrito en cualquier momento.
----
-### 16. CONDUCTA
-
-* Rige el Código de Honor UC. Cualquier conducta de hostigamiento implica descalificación inmediata.
-
-* Este es un resumen. Las bases oficiales completas, con todas las cláusulas y el detalle de responsabilidad, están disponibles en [este enlace](https://hacaithon.cai.cl/assets/Bases_HaCAithon_2026.pdf).
-
-Consultas: cai@caiuc.cl
+- **Horario de Desarrollo:** 12:40 a 17:10 hrs.
+- **Feria de Proyectos:** 17:10 hrs (exhibición en simultáneo ante jurado y público).
+- **Criterios de Evaluación:** Innovación y creatividad (15%) · Impacto y relevancia social (25%) · Viabilidad técnica (25%) · Ejecución y funcionamiento (20%) · Comunicación (15%).
+- **Licencia:** MIT (Open Source).
+- **Contacto CAi:** cai@caiuc.cl · [https://tinyurl.com/Hacaithon](https://tinyurl.com/Hacaithon)
