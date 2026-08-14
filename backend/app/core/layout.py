@@ -7,7 +7,7 @@ básicos (sombras, ruido/seguridad eólica, longitud de cableado) y la orientaci
 """
 from typing import Optional
 
-from app.models.schemas import SolarSizing, WindSizing, BatterySizing, LayoutZone, SiteLayout
+from app.models.schemas import SolarSizing, WindSizing, BatterySizing, InverterSizing, LayoutZone, SiteLayout
 
 # Área aproximada de un panel monocristalino PERC de 550 Wp (m2)
 PANEL_AREA_M2 = 2.7
@@ -15,11 +15,20 @@ PANEL_AREA_M2 = 2.7
 BATTERY_MODULE_AREA_M2 = 0.3
 BATTERY_CABINET_BASE_AREA_M2 = 1.5
 
+# Radio práctico de cobertura de la red de distribución AC (230V) desde el gabinete de
+# baterías/inversor: heurística de planificación (no un cálculo de caída de tensión por
+# tramo), donde inversores de mayor capacidad justifican económicamente cableado de
+# mayor sección y por lo tanto tendidos más largos sin pérdidas significativas.
+COVERAGE_BASE_RADIUS_M = 40.0
+COVERAGE_RADIUS_PER_KVA_M = 6.0
+COVERAGE_MAX_RADIUS_M = 150.0
+
 
 def generate_site_layout(
     solar: SolarSizing,
     wind: WindSizing,
     battery: BatterySizing,
+    inverter: InverterSizing,
     households: int = 1
 ) -> SiteLayout:
     """
@@ -77,10 +86,20 @@ def generate_site_layout(
         )
     )
 
+    # --- Radio práctico de cobertura de la microrred desde el gabinete de baterías/inversor ---
+    coverage_radius_m = round(
+        min(COVERAGE_MAX_RADIUS_M, COVERAGE_BASE_RADIUS_M + inverter.nominal_power_kva * COVERAGE_RADIUS_PER_KVA_M),
+        1
+    )
+
     general_notes = [
         "Mantener segregación física entre canalizaciones DC (paneles) y AC (inversor-vivienda) según RIC N°09.1.",
         "Todas las estructuras metálicas (paneles, torre eólica, gabinete de baterías) deben unirse a la "
-        "misma malla de puesta a tierra (≤ 20 Ω, RIC N°06)."
+        "misma malla de puesta a tierra (≤ 20 Ω, RIC N°06).",
+        f"Radio práctico de cobertura estimado: ≈{coverage_radius_m:.0f} m desde el gabinete de baterías/inversor "
+        "(heurística de planificación según capacidad del inversor, no un cálculo de caída de tensión detallado). "
+        "Viviendas más allá de este radio pueden sufrir caída de tensión relevante y requieren cableado de mayor "
+        "sección, un segundo hub de generación, o un sistema propio."
     ]
 
     if households > 1:
@@ -88,7 +107,7 @@ def generate_site_layout(
             f"Con {households} viviendas conectadas, se recomienda un hub de generación centralizado "
             "ubicado en el punto equidistante entre las viviendas (minimiza el largo total de "
             "alimentadores) o, alternativamente, sistemas individuales replicados por vivienda si "
-            "la dispersión geográfica supera ~50 m entre ellas."
+            "la dispersión geográfica supera el radio de cobertura estimado."
         )
     else:
         general_notes.append(
@@ -101,5 +120,6 @@ def generate_site_layout(
         solar_zone=solar_zone,
         wind_zone=wind_zone,
         battery_zone=battery_zone,
+        coverage_radius_m=coverage_radius_m,
         general_notes=general_notes
     )

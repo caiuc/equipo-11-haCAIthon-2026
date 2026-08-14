@@ -1,11 +1,12 @@
 <p align="center">
-  <img src="frontend/assets/logo_enchufate.jpeg" alt="EnchufaTE" width="360">
+  <img src="frontend/assets/logo_enchufate.png" alt="EnchufaTE" width="420">
 </p>
 
 <p align="center">
   <a href="https://tinyurl.com/Hacaithon" target="_blank"><img src="https://img.shields.io/badge/CAi-HaCAiThon_2026-FFC72C?style=for-the-badge" alt="CAi Badge" /></a>
   <img src="https://img.shields.io/badge/SEC-RIC_N%C2%B009.1_%2F_RIC_N%C2%B006-0e6151?style=for-the-badge" alt="SEC Badge" />
   <img src="https://img.shields.io/badge/Licencia-MIT-c08516?style=for-the-badge" alt="MIT License" />
+  <img src="https://img.shields.io/badge/C%C3%B3digo_generado_con-Claude_%2B_Antigravity%2FGemini-8a3ffc?style=for-the-badge" alt="Desarrollado con IA: Claude y Google Antigravity/Gemini" />
 </p>
 
 <p align="center">
@@ -95,7 +96,7 @@ El **Paso 5 (Expediente TE1 SEC)** de la app genera el checklist y la memoria de
 │   ├── index.html                   # Asistente de 5 pasos
 │   ├── styles.css                   # Sistema de diseño (tema claro, paleta de marca)
 │   ├── app.js                       # Lógica del asistente, mapas y llamadas a la API
-│   └── assets/logo_enchufate.jpeg   # Logo del proyecto
+│   └── assets/logo_enchufate.png    # Logo del proyecto
 ├── CLAUDE.md                        # Guía de desarrollo y convenciones del proyecto
 ├── instrucciones_desarrollo_ia.md   # Especificación técnica para agentes de IA
 └── LICENSE                          # Licencia MIT
@@ -103,6 +104,13 @@ El **Paso 5 (Expediente TE1 SEC)** de la app genera el checklist y la memoria de
 
 ---
 
-## Créditos
+## Créditos y desarrollo con IA
 
 Proyecto desarrollado por el **Equipo 11** para la **HaCAiThon 2026** del Centro de Alumnos de Ingeniería UC (CAi). Licencia MIT (código abierto).
+
+**Este código fue desarrollado con asistencia de Inteligencia Artificial**, usando:
+
+- **Claude** (Anthropic) — vía Claude Code.
+- **Google Antigravity / Gemini** (Google) — plataforma de desarrollo agéntico impulsada por modelos Gemini.
+
+El uso de estas herramientas de IA se declara explícitamente por transparencia con el jurado y la comunidad de la HaCAiThon 2026.

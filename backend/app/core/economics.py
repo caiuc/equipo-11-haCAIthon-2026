@@ -5,7 +5,6 @@ Costos en Pesos Chilenos (CLP), ahorro de diésel, LCOE y mitigación de CO2.
 import re
 import unicodedata
 from typing import List
-from urllib.parse import quote_plus
 from app.config import (
     CLP_PER_USD,
     COST_PER_KWP_PV_CLP,
@@ -60,8 +59,12 @@ def _purchase_search_url(query: str) -> str:
 
 
 def _installation_service_search_url() -> str:
-    """Enlace referencial para encontrar instaladores eléctricos certificados SEC en Chile."""
-    return f"https://www.google.com/search?q={quote_plus('instalador eléctrico certificado SEC clase A o B fotovoltaico off-grid Chile')}"
+    """
+    Buscador oficial de instaladores eléctricos certificados de la Superintendencia de
+    Electricidad y Combustibles (SEC) de Chile: permite verificar la licencia Clase A/B
+    vigente de un instalador por RUT o nombre antes de contratarlo.
+    """
+    return "https://wlhttp.sec.cl/buscadorinstaladores/buscador.do"
 
 
 def calculate_economics_and_impact(

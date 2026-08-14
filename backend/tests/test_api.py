@@ -222,8 +222,11 @@ async def test_dimensionar_households_and_options_and_layout():
             assert opt["num_panels"] >= 1
             assert len(opt["bom"]) >= 4
             assert all(item["purchase_url"] for item in opt["bom"] if item["category"] != "Servicios de Ingeniería y SEC")
-            assert opt["installation_service_url"].startswith("https://")
+            assert opt["installation_service_url"] == "https://wlhttp.sec.cl/buscadorinstaladores/buscador.do"
             assert opt["sec_installer_registry_url"] == "https://www.sec.cl"
+            for item in opt["bom"]:
+                if item["purchase_url"]:
+                    assert item["purchase_url"].startswith("https://listado.mercadolibre.cl/")
 
         # Plano de instalación: zonas de emplazamiento coherentes con la(s) vivienda(s)
         layout = data3["site_layout"]
@@ -231,6 +234,8 @@ async def test_dimensionar_households_and_options_and_layout():
         assert layout["solar_zone"]["bearing_deg"] == 0.0  # Norte geográfico (Hemisferio Sur)
         assert layout["solar_zone"]["area_m2"] > 0
         assert len(layout["general_notes"]) >= 2
+        # Radio de cobertura práctico: siempre positivo y dentro del rango de diseño
+        assert 0 < layout["coverage_radius_m"] <= 150.0
 
 
 @pytest.mark.asyncio

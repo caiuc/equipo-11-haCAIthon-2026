@@ -640,8 +640,8 @@ function renderOptionCard(option, isSelected) {
     <div class="option-bom-list" id="${cardBomId}">
       ${bomHtml}
       <div class="option-install-row">
-        <a href="${option.installation_service_url}" target="_blank" rel="noopener">🔧 Buscar instalador certificado SEC cerca de ti ↗</a>
-        <a href="${option.sec_installer_registry_url}" target="_blank" rel="noopener">📋 Registro oficial de instaladores SEC (sec.cl) ↗</a>
+        <a href="${option.installation_service_url}" target="_blank" rel="noopener">🔧 Buscador Oficial de Instaladores Certificados SEC ↗</a>
+        <a href="${option.sec_installer_registry_url}" target="_blank" rel="noopener">📋 Sitio Oficial SEC (sec.cl) ↗</a>
         <div class="link-disclaimer">Enlaces referenciales de búsqueda; verifica precios, stock y certificación vigente antes de comprar o contratar.</div>
       </div>
     </div>
@@ -682,10 +682,50 @@ function offsetLatLon(lat, lon, distanceM, bearingDeg) {
   return [lat + (dLat * 180) / Math.PI, lon + (dLon * 180) / Math.PI];
 }
 
+/** Distancia real en metros entre dos puntos lat/lon (fórmula de Haversine). */
+function distanceBetweenM(lat1, lon1, lat2, lon2) {
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
+  return EARTH_RADIUS_M * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+/**
+ * Distribuye N viviendas en anillos concéntricos (hasta 8 por anillo, 30m entre anillos),
+ * simulando la dispersión real de un caserío rural en vez de amontonarlas siempre cerca
+ * del centro. Así, con muchas viviendas o un radio de cobertura chico, el plano muestra
+ * honestamente que algunas quedan fuera del alcance práctico de la microrred.
+ */
+function computeHouseholdPositions(count) {
+  const RING_CAPACITY = 8;
+  const RING_SPACING_M = 30;
+  const positions = [];
+  let remaining = count;
+  let ring = 0;
+  while (remaining > 0) {
+    const inThisRing = Math.min(RING_CAPACITY, remaining);
+    const radius = RING_SPACING_M * (ring + 1);
+    for (let i = 0; i < inThisRing; i++) {
+      const bearing = (360 / inThisRing) * i + ring * 15;
+      positions.push({ radius, bearing });
+    }
+    remaining -= inThisRing;
+    ring++;
+  }
+  return positions;
+}
+
 const ZONE_COLORS = {
-  'Arreglo Fotovoltaico': '#d97706',
+  'Arreglo Fotovoltaico': '#c08516',
   'Microturbina Eólica': '#0891b2',
   'Banco de Baterías + Inversor': '#059669'
+};
+
+const ZONE_ICONS = {
+  'Arreglo Fotovoltaico': '☀️',
+  'Microturbina Eólica': '🌀',
+  'Banco de Baterías + Inversor': '🔋'
 };
 
 function setupMapLayout(lat, lon) {
@@ -708,6 +748,15 @@ function setupMapLayout(lat, lon) {
   return state.mapLayoutInstance;
 }
 
+function makeEmojiDivIcon(emoji, extraClass, size) {
+  return L.divIcon({
+    className: '',
+    html: `<div class="enchufate-map-icon ${extraClass || ''}" style="font-size:${size || 20}px;">${emoji}</div>`,
+    iconSize: [size || 24, size || 24],
+    iconAnchor: [(size || 24) / 2, (size || 24) / 2]
+  });
+}
+
 function renderInstallationLayout(data) {
   const layout = data.site_layout;
   const map = setupMapLayout(data.location.latitude, data.location.longitude);
@@ -716,26 +765,49 @@ function renderInstallationLayout(data) {
   const group = state.mapLayoutLayerGroup;
   const centerLat = data.location.latitude;
   const centerLon = data.location.longitude;
-  const houseIcon = L.divIcon({ className: '', html: '<div class="enchufate-house-icon">🏠</div>', iconSize: [22, 22], iconAnchor: [11, 11] });
 
   document.getElementById('plano-households-badge').textContent =
     `${layout.households_count} ${layout.households_count === 1 ? 'vivienda' : 'viviendas'}`;
 
-  const householdsToDraw = Math.min(layout.households_count, 8);
-  if (householdsToDraw === 1) {
-    L.marker([centerLat, centerLon], { icon: houseIcon }).addTo(group).bindPopup('Vivienda');
-  } else {
-    for (let i = 0; i < householdsToDraw; i++) {
-      const bearing = (360 / householdsToDraw) * i;
-      const [hLat, hLon] = offsetLatLon(centerLat, centerLon, 12, bearing);
-      L.marker([hLat, hLon], { icon: houseIcon }).addTo(group).bindPopup(`Vivienda ${i + 1}`);
-    }
-    if (layout.households_count > householdsToDraw) {
-      L.marker([centerLat, centerLon], { icon: houseIcon }).addTo(group)
-        .bindPopup(`+${layout.households_count - householdsToDraw} viviendas adicionales (caserío)`);
-    }
-  }
+  // Punto real del gabinete de baterías/inversor: es el origen de la red de distribución AC,
+  // por lo que el radio de cobertura se mide desde ahí (no desde el centro genérico del predio).
+  const bZone = layout.battery_zone;
+  const bMidDist = (bZone.min_distance_m + bZone.max_distance_m) / 2;
+  const [hubLat, hubLon] = offsetLatLon(centerLat, centerLon, Math.max(bMidDist, 1), bZone.bearing_deg);
 
+  // -------- Círculo de cobertura práctica (opaco/semi-transparente) --------
+  L.circle([hubLat, hubLon], {
+    radius: layout.coverage_radius_m,
+    color: '#0e6151',
+    weight: 2,
+    dashArray: '8,6',
+    fillColor: '#0e6151',
+    fillOpacity: 0.14
+  }).addTo(group).bindPopup(
+    `<b>Radio de cobertura práctico: ≈${layout.coverage_radius_m.toFixed(0)} m</b><br>` +
+    'Dentro de este radio, el cableado AC llega sin caídas de tensión relevantes. ' +
+    'Viviendas fuera de este círculo pueden necesitar cableado reforzado, un segundo hub, o sistema propio.'
+  );
+
+  // -------- Viviendas (en anillos realistas, no todas amontonadas en el centro) --------
+  const positions = computeHouseholdPositions(layout.households_count);
+  let coveredCount = 0;
+  positions.forEach((pos, i) => {
+    const [hLat, hLon] = offsetLatLon(centerLat, centerLon, pos.radius, pos.bearing);
+    const distToHub = distanceBetweenM(hubLat, hubLon, hLat, hLon);
+    const isCovered = distToHub <= layout.coverage_radius_m;
+    if (isCovered) coveredCount++;
+
+    const icon = makeEmojiDivIcon('🏠', isCovered ? 'house-covered' : 'house-not-covered', 22);
+    const popupText = isCovered
+      ? `Vivienda ${i + 1} · ≈${distToHub.toFixed(0)} m del hub · ✅ dentro del radio de cobertura`
+      : `Vivienda ${i + 1} · ≈${distToHub.toFixed(0)} m del hub · ⚠️ FUERA del radio de cobertura práctico`;
+    L.marker([hLat, hLon], { icon }).addTo(group).bindPopup(popupText);
+  });
+
+  const notCoveredCount = layout.households_count - coveredCount;
+
+  // -------- Zonas de equipos: círculo semi-transparente (área) + marcador emoji (ubicación exacta) --------
   const zones = [layout.solar_zone, layout.wind_zone, layout.battery_zone].filter(Boolean);
   const legendContainer = document.getElementById('layout-legend-container');
   legendContainer.innerHTML = '';
@@ -745,14 +817,18 @@ function renderInstallationLayout(data) {
     const [zLat, zLon] = offsetLatLon(centerLat, centerLon, Math.max(midDistance, 3), zone.bearing_deg);
     const color = ZONE_COLORS[zone.equipment] || '#0e6151';
     const radius = Math.max(4, (zone.max_distance_m - zone.min_distance_m) / 2 + 3);
+    const emoji = ZONE_ICONS[zone.equipment] || '📍';
 
     L.circle([zLat, zLon], {
       radius,
       color,
       weight: 2,
       fillColor: color,
-      fillOpacity: 0.25
-    }).addTo(group).bindPopup(`<b>${zone.equipment}</b><br>${zone.note}`);
+      fillOpacity: 0.3
+    }).addTo(group).bindPopup(`<b>${emoji} ${zone.equipment}</b><br>${zone.note}`);
+
+    L.marker([zLat, zLon], { icon: makeEmojiDivIcon(emoji, 'zone-icon', 22) }).addTo(group)
+      .bindPopup(`<b>${emoji} ${zone.equipment}</b><br>${zone.note}`);
 
     L.polyline([[centerLat, centerLon], [zLat, zLon]], {
       color, weight: 1.5, dashArray: '4,4', opacity: 0.7
@@ -761,11 +837,22 @@ function renderInstallationLayout(data) {
     const legendItem = document.createElement('div');
     legendItem.className = 'layout-legend-item';
     legendItem.innerHTML = `
-      <div class="legend-title"><span class="legend-swatch" style="background:${color}"></span>${zone.equipment}</div>
+      <div class="legend-title"><span class="legend-swatch" style="background:${color}"></span>${emoji} ${zone.equipment}</div>
       <div class="legend-detail">${zone.direction} · ${zone.min_distance_m.toFixed(0)}-${zone.max_distance_m.toFixed(0)} m de la vivienda · ≈${zone.area_m2} m²</div>
     `;
     legendContainer.appendChild(legendItem);
   });
+
+  // -------- Resumen de cobertura (llamativo si hay viviendas sin cubrir) --------
+  const coverageBanner = document.getElementById('layout-coverage-banner');
+  if (notCoveredCount > 0) {
+    coverageBanner.className = 'layout-coverage-banner warning';
+    coverageBanner.innerHTML = `⚠️ <b>${notCoveredCount} de ${layout.households_count}</b> vivienda(s) quedan fuera del radio práctico ` +
+      `de cobertura (≈${layout.coverage_radius_m.toFixed(0)} m). Considera un segundo hub de generación, cableado reforzado, o un sistema propio para esas viviendas.`;
+  } else {
+    coverageBanner.className = 'layout-coverage-banner ok';
+    coverageBanner.innerHTML = `✅ Las <b>${layout.households_count}</b> vivienda(s) quedan dentro del radio práctico de cobertura (≈${layout.coverage_radius_m.toFixed(0)} m).`;
+  }
 
   const notesContainer = document.getElementById('layout-notes-container');
   notesContainer.innerHTML = '';

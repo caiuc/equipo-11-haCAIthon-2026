@@ -212,6 +212,11 @@ class SiteLayout(BaseModel):
     solar_zone: LayoutZone
     wind_zone: Optional[LayoutZone] = None
     battery_zone: LayoutZone
+    coverage_radius_m: float = Field(
+        ...,
+        description="Radio práctico de cobertura de la microrred (AC) desde el gabinete de "
+                    "baterías/inversor, sin caídas de tensión significativas en el cableado."
+    )
     general_notes: List[str] = Field(default_factory=list)
 
 

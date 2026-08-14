@@ -137,7 +137,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 24px;
+  padding: 10px 24px;
   background-color: var(--bg-card);
   border-bottom: 1px solid var(--border-color);
   gap: 16px;
@@ -151,10 +151,18 @@ body {
 }
 
 .brand-logo-img {
-  height: 40px;
+  height: 88px;
   width: auto;
+  max-width: min(340px, 42vw);
+  object-fit: contain;
   flex-shrink: 0;
   display: block;
+}
+
+@media (max-width: 640px) {
+  .brand-logo-img {
+    height: 56px;
+  }
 }
 
 .brand-badge {
@@ -573,12 +581,30 @@ body {
   font-weight: 700;
 }
 
-/* Marcadores/etiquetas propios sobre Leaflet */
-.enchufate-house-icon {
-  font-size: 20px;
+/* Marcadores/etiquetas propios sobre Leaflet (viviendas y equipos en el Plano de Instalación) */
+.enchufate-map-icon {
   text-align: center;
   line-height: 1;
   filter: drop-shadow(0 1px 2px rgba(0,0,0,0.35));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.enchufate-map-icon.house-covered {
+  background: radial-gradient(circle, rgba(5,150,105,0.28) 55%, transparent 60%);
+  border-radius: 50%;
+}
+
+.enchufate-map-icon.house-not-covered {
+  background: radial-gradient(circle, rgba(220,38,38,0.30) 55%, transparent 60%);
+  border-radius: 50%;
+}
+
+.enchufate-map-icon.zone-icon {
+  background-color: rgba(255,255,255,0.9);
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgba(15,23,42,0.35);
 }
 
 /* ================= PASO 2: DETALLES ================= */
@@ -976,6 +1002,31 @@ body {
 }
 
 /* ================= PASO 4: PLANO DE INSTALACIÓN ================= */
+.layout-coverage-banner {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  line-height: 1.5;
+}
+
+.layout-coverage-banner:empty {
+  display: none;
+}
+
+.layout-coverage-banner.ok {
+  background-color: var(--bat-emerald-bg);
+  border-color: rgba(5, 150, 105, 0.3);
+  color: #065f46;
+}
+
+.layout-coverage-banner.warning {
+  background-color: #fef2f2;
+  border-color: #fecaca;
+  color: #991b1b;
+}
+
 .layout-legend {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

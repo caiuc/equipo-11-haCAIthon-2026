@@ -198,6 +198,7 @@ async def dimensionar_sistema(request: DimensioningRequest) -> DimensioningRespo
             solar=solar,
             wind=wind,
             battery=battery,
+            inverter=inverter,
             households=request.households
         )
 
